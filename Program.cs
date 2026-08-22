@@ -1,122 +1,107 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Pipes;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Globalization;
 
-public class Student
+namespace Exercise_buổi_3
 {
-    private string name;
-    private double score;
-    private static int totalStudents = 0;
-
-    public Student(string name, double score)
+    public class UserAccount
     {
-        this.name = name;
-        this.score = score;
-        totalStudents++;
-    }
+        // 1. Private backing fields
+        private string _password;
+        private decimal _balance;
 
-    // instance methods
-    public string GetName()
-    {
-        return this.name;
-    }
+        // TODO 1: AccountId (Chỉ gán qua Constructor, không cho sửa từ ngoài)
+        public string AccountId { get; }
 
-    public double GetScore()
-    {
-        return this.score;
-    }
+        // TODO 2: Username (Auto-Implemented)
+        public string Username { get; set; }
 
-    public bool IsPassed()
-    {
-        return this.score >= 5.0;
-    }
-
-    public string GetClassification()
-    {
-        if (this.score >= 8.0)
-            return "Excellent";
-        else if (this.score >= 6.5)
-            return "Good";
-        else if (this.score >= 5.0)
-            return "Average";
-        else
-            return "Weak";
-    }
-
-    // static methods
-    public static int GetTotalStudents()
-    {
-        return totalStudents;
-    }
-
-    public static Student FindTopStudent(Student[] students)
-    {
-        if (students == null || students.Length == 0)
-            return null;
-
-        Student topStudent = students[0];
-        for (int i = 1; i < students.Length; i++)
+        // TODO 3: Password (Write-Only)
+        public string Password
         {
-            if (students[i].GetScore() > topStudent.GetScore())
+            set
             {
-                topStudent = students[i];
+                _password = "[ENCRYPTED]_" + value;
             }
         }
-        return topStudent;
+
+        // TODO 4: Balance (Full Property with Validation)
+        public decimal Balance
+        {
+            get
+            {
+                return _balance;
+            }
+            set
+            {
+                if (value < 0)
+                {
+                    Console.WriteLine("Error: Balance cannot be negative!");
+                }
+                else
+                {
+                    _balance = value;
+                }
+            }
+        }
+
+        // TODO 5: IsVIP (Computed Read-Only)
+        public bool IsVIP
+        {
+            get
+            {
+                return _balance >= 10000m;
+            }
+        }
+
+        // TODO 6: CreatedDate (Get-Only)
+        public DateTime CreatedDate { get; }
+
+        // Constructor nhận AccountId khi khởi tạo
+        public UserAccount(string accountId)
+        {
+            AccountId = accountId;
+            CreatedDate = DateTime.Now;
+        }
     }
 
-    public static double CalculateAverageScore(Student[] students)
+    class Program
     {
-        if (students == null || students.Length == 0)
-            return 0.0;
-
-        double totalScore = 0;
-        foreach (Student s in students)
+        static void Main(string[] args)
         {
-            totalScore += s.GetScore();
+            CultureInfo culture = new CultureInfo("en-US");
+
+            // --- TEST HARNESS ---
+
+            // 1. Khởi tạo đối tượng với AccountId trong Constructor
+            UserAccount user = new UserAccount("ACC-99201")
+            {
+                Username = "Alice_Code",
+                Password = "SuperSecretPassword123"
+            };
+
+            Console.WriteLine("Account ID: " + user.AccountId);
+            Console.WriteLine("Username: " + user.Username);
+            Console.WriteLine("Account Created: " + user.CreatedDate);
+
+            // 2. Test Full Property Validation
+            Console.WriteLine("\n--- Testing Balance Updates ---");
+            user.Balance = 5000m;
+            Console.WriteLine("Current Balance: " + user.Balance.ToString("C", culture));
+
+            user.Balance = -200m;
+            Console.WriteLine("Current Balance after invalid attempt: " + user.Balance.ToString("C", culture));
+
+            // 3. Test Computed Read-Only Property (IsVIP)
+            Console.WriteLine("\nIs VIP? " + user.IsVIP);
+
+            user.Balance = 15000m;
+            Console.WriteLine("Updated Balance: " + user.Balance.ToString("C", culture));
+            Console.WriteLine("Is VIP now? " + user.IsVIP);
         }
-        return totalScore / students.Length;
-    }
-}
-
-class Program
-{
-    static void Main(string[] args)
-    {
-        // 1.tao mang gom 5 sinh vien
-        Student[] students = new Student[]
-        {
-            new Student("An", 8.5),
-            new Student("Bình", 6.8),
-            new Student("Cường", 4.5),
-            new Student("Dung", 9.2),
-            new Student("Huy", 5.5)
-        };
-
-        // 2.in tong so sinh vien da tao 
-        Console.WriteLine($"Total students created: {Student.GetTotalStudents()}");
-        
-
-        // 3.in danh sach sinh vien va ket qua 
-        Console.WriteLine("Student List:");
-        foreach (Student s in students)
-        {
-            string status = s.IsPassed() ? "Passed" : "Failed";
-            Console.WriteLine($"- Name: {s.GetName(),-8} | Score: {s.GetScore(),-4} | Classification: {s.GetClassification(),-10} | Status: {status}");
-        }
-
-        // 4.tim va in sinh vien co diem cao nhat
-        Student topStudent = Student.FindTopStudent(students);
-        if (topStudent != null)
-        {
-            Console.WriteLine($"Top Student: {topStudent.GetName()} with score {topStudent.GetScore()}");
-        }
-
-        // 5.in diem trung binh ca lop 
-        double classAvg = Student.CalculateAverageScore(students);
-        Console.WriteLine($"Class Average Score: {classAvg:F2}");
     }
 }
